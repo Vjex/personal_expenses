@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:personal_expenses/widgets/transaction_list.dart';
+import './widgets/transaction_list.dart';
 
 import './models/transaction.dart';
 import './widgets/new_transaction.dart';
+import './widgets/chart.dart';
 
 void main() => runApp(MyHomePage());
 
@@ -12,33 +13,15 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Transaction> _transactions = [
-    Transaction(
-      id: 't1',
-      title: 'New Shoes',
-      amount: 400.45,
-      dateTime: DateTime.now(),
-    ),
-    Transaction(
-      id: 't2',
-      title: 'New Watch',
-      amount: 800,
-      dateTime: DateTime.now(),
-    ),
-    Transaction(
-      id: 't3',
-      title: 'New Clothes',
-      amount: 2400,
-      dateTime: DateTime.now(),
-    ),
-  ];
+  final List<Transaction> _transactions = [];
 
-  void _addNewTransaction(String txTitle, double amount) {
+  void _addNewTransaction(
+      String txTitle, double amount, DateTime selectedDate) {
     final newTxn = Transaction(
       id: DateTime.now().toString(),
       title: txTitle,
       amount: amount,
-      dateTime: DateTime.now(),
+      dateTime: selectedDate,
     );
 
     setState(() {
@@ -61,21 +44,39 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  void _deleteATranasaction(String id) {
+    setState(() {
+      _transactions.removeWhere((txn) => txn.id == id);
+    });
+  }
+
+  List<Transaction> get _getrecentTranctions {
+    return _transactions.where((txn) {
+      return txn.dateTime.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        primarySwatch: Colors.purple, //primarySwatch is used for provideing also diffrrent shated to the widget automatically which is not possible through primary color.
-        accentColor:Colors.amber, //accent provides the opposite contrasting color
+        primarySwatch: Colors
+            .purple, //primarySwatch is used for provideing also diffrrent shated to the widget automatically which is not possible through primary color.
+        accentColor:
+            Colors.amber, //accent provides the opposite contrasting color
         fontFamily: 'QuickSand',
         textTheme: ThemeData.light().textTheme.copyWith(
-          title: TextStyle(
-            fontFamily: 'OpenSans',
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
+              title: TextStyle(
+                fontFamily: 'OpenSans',
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
         appBarTheme: AppBarTheme(
           textTheme: ThemeData.light().textTheme.copyWith(
                 title: TextStyle(
@@ -102,15 +103,10 @@ class _MyHomePageState extends State<MyHomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Container(
-                width: double.infinity,
-                child: Card(
-                  child: Text('CArd is'),
-                  color: Colors.blue,
-                ),
-              ),
+              Chart(
+                  _getrecentTranctions), //Adding Chart by Pasing recent 7 days Transactions.
               //List of the Expenses
-              TransactionList(_transactions),
+              TransactionList(_transactions,_deleteATranasaction),
             ],
           ),
         ),

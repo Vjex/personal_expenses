@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class NewTransaction extends StatefulWidget {
   final Function addTransaction;
@@ -10,24 +11,49 @@ class NewTransaction extends StatefulWidget {
 }
 
 class _NewTransactionState extends State<NewTransaction> {
-  final titleController = TextEditingController();
-  final amountController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _amountController = TextEditingController();
+  DateTime _selectedDate;
 
-  void submitTransaction() {
-    final String enteredTitle = titleController.text;
-    final double enteredAmount = double.parse(amountController.text);
+  void _submitTransaction() {
+//To check the amountController is empty otherwise it will through a error  of parsing a null data.
 
-    if (enteredTitle.isEmpty || enteredAmount <= 0) {
+    if (_amountController.text.isEmpty) {
+      return;
+    }
+
+    final String enteredTitle = _titleController.text;
+    final double enteredAmount = double.parse(_amountController.text);
+
+    if (enteredTitle.isEmpty || enteredAmount <= 0 || _selectedDate == null) {
       return;
     } else {
-
-      widget.addTransaction(       //widget keyword is used to access the properties of the widget class inside the stateClass.
+      widget.addTransaction(
+        //widget keyword is used to access the properties of the widget class inside the stateClass.
         enteredTitle,
         enteredAmount,
+        _selectedDate
       );
       //To close the the AddTransactionModelSheet.
       Navigator.of(context).pop();
     }
+  }
+
+  void _presentDatePicker() {
+    //Inbuilt Flutter Method to show A datePicker
+    showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2019),
+      lastDate: DateTime.now(),
+    ).then((pickedDate) {
+      if (pickedDate == null) {
+        return;
+      }
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    });
   }
 
   @override
@@ -42,9 +68,9 @@ class _NewTransactionState extends State<NewTransaction> {
               decoration: InputDecoration(
                 labelText: 'Title',
               ),
-              controller: titleController,
+              controller: _titleController,
               onSubmitted: (_) =>
-                  submitTransaction(), // '_' is used as argument of anonymus function indicates the argument passed to  the function  will not be cared or not required or will not be used (Not care about it.)
+                  _submitTransaction(), // '_' is used as argument of anonymus function indicates the argument passed to  the function  will not be cared or not required or will not be used (Not care about it.)
 
               // onChanged: (val){
               //   print(val);
@@ -54,17 +80,39 @@ class _NewTransactionState extends State<NewTransaction> {
               decoration: InputDecoration(
                 labelText: 'Amount',
               ),
-              controller: amountController,
+              controller: _amountController,
               keyboardType: TextInputType.number,
               onSubmitted: (_) =>
-                  submitTransaction(), // '_' is used as argument of anonymus function indicates the argument passed to  the function  will not be cared or not required or will not be used (Not care about it.)
+                  _submitTransaction(), // '_' is used as argument of anonymus function indicates the argument passed to  the function  will not be cared or not required or will not be used (Not care about it.)
             ),
-            FlatButton(
-              onPressed: submitTransaction,
+            Row(
+              children: <Widget>[
+                Expanded(
+                  child: Text(
+                    _selectedDate == null
+                        ? 'No date choosen !!'
+                        : 'Picked Date : ${DateFormat.yMd().format(_selectedDate)}',
+                  ),
+                ),
+                FlatButton(
+                  textColor: Theme.of(context).primaryColor,
+                  child: Text(
+                    'Choose Date',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  onPressed: _presentDatePicker,
+                )
+              ],
+            ),
+            RaisedButton(
+              color: Theme.of(context).primaryColor,
+              onPressed: _submitTransaction,
               child: Text(
                 'Add Transaction',
               ),
-              textColor: Colors.purple,
+              textColor: Theme.of(context).buttonColor,
             )
           ],
         ),
