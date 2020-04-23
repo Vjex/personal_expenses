@@ -1,4 +1,4 @@
-import 'dart:io';
+// import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -9,7 +9,9 @@ import './adaptive_flat_button.dart';
 class NewTransaction extends StatefulWidget {
   final Function addTransaction;
 
-  NewTransaction(this.addTransaction);
+  NewTransaction(this.addTransaction) {
+    print('Contructor() of New Transaction Called!');
+  }
 
   @override
   _NewTransactionState createState() => _NewTransactionState();
@@ -19,6 +21,31 @@ class _NewTransactionState extends State<NewTransaction> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   DateTime _selectedDate;
+
+  _NewTransactionState() {
+    print('ContructorOfState() of New Transaction Called!');
+  }
+
+  @override
+  void initState() {
+    print('initState() of New Transaction Called!');
+
+    super.initState();
+  }
+
+  @override
+  void didUpdateWidget(NewTransaction oldWidget) {
+    print('didUpdateWidget() of New Transaction Called!');
+
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
+  void dispose() {
+    print('dispose() of New Transaction Called!');
+
+    super.dispose();
+  }
 
   void _submitTransaction() {
 //To check the amountController is empty otherwise it will through a error  of parsing a null data.

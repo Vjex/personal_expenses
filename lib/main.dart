@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart'; //For ioS styling
 import 'package:flutter/material.dart'; //For Android styling.
-import 'package:flutter/services.dart';
+// import 'package:flutter/services.dart';
 import './widgets/transaction_list.dart';
 
 import './models/transaction.dart';
@@ -50,7 +50,32 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+//JUst for learning about life-Cycle of App.  and also using MIxing property of Dart using WITH Keyword.
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    print(state);
+
+    super.didChangeAppLifecycleState(state);
+  }
+
+//disposing all the observer listner is very important other even after closing the app these listner may be live in the memory which can cause memory leak.
+  @override
+  void dispose() {
+    //removing the observer instance created in inItState();
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+///////////////////////////Actual-Content of the App///////////////////////////////////////////////////
+
   final List<Transaction> _transactions = [];
 
   bool _showChart = false;
@@ -98,6 +123,45 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       );
     }).toList();
+  }
+
+  List<Widget> _buildLandscapeContent(MediaQueryData mediaQuerryObject,
+      AppBar appBar, Builder transactionListWidget, Builder chartWidget) {
+    return [
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Show Chart',
+            style: Theme.of(context).textTheme.title,
+          ),
+          Switch.adaptive(
+              //.adaptive is used to just for patform based switch will be provide like for Ios and Android.
+              activeColor: Theme.of(context).accentColor,
+              value: _showChart,
+              onChanged: (val) {
+                setState(() {
+                  _showChart = val;
+                });
+              }),
+        ],
+      ),
+      _showChart ? chartWidget : transactionListWidget
+    ];
+  }
+
+  List<Widget> _buildPortraitContent(MediaQueryData mediaQuerryObject,
+      AppBar appBar, Builder transactionListWidget) {
+    return [
+      Container(
+        height: (mediaQuerryObject.size.height -
+                appBar.preferredSize.height -
+                mediaQuerryObject.padding.top) *
+            0.3,
+        child: Chart(_getrecentTranctions),
+      ),
+      transactionListWidget,
+    ];
   }
 
   @override
@@ -164,34 +228,17 @@ class _MyHomePageState extends State<MyHomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
             if (isLanscape)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text('Show Chart',style: Theme.of(context).textTheme.title,),
-                  Switch.adaptive(
-                      //.adaptive is used to just for patform based switch will be provide like for Ios and Android.
-                      activeColor: Theme.of(context).accentColor,
-                      value: _showChart,
-                      onChanged: (val) {
-                        setState(() {
-                          _showChart = val;
-                        });
-                      }),
-                ],
-              ),
+              ..._buildLandscapeContent(mediaQuerryObject, appBar,
+                  transactionListWidget, chartWidget),
             if (!isLanscape)
-              Container(
-                height: (mediaQuerryObject.size.height -
-                        appBar.preferredSize.height -
-                        mediaQuerryObject.padding.top) *
-                    0.3,
-                child: Chart(_getrecentTranctions),
-              ),
-            if (!isLanscape) transactionListWidget,
-            if (isLanscape) _showChart ? chartWidget : transactionListWidget,
+              ..._buildPortraitContent(
+                mediaQuerryObject,
+                appBar,
+                transactionListWidget,
+              ), //Used spread element method '...' to get all the widgets from the list of Widgets.
           ],
         ),
-      ),  
+      ),
     );
 
     return Platform.isIOS
